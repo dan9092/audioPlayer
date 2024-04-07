@@ -1,6 +1,6 @@
 import './App.css';
 import React from 'react';
-import AudioComponent from './components/audioComponent/AudioComponent';
+import AudioComponent from './components/player/PlayerComponent';
 import { render } from 'react-dom';
 
 const App = () => {

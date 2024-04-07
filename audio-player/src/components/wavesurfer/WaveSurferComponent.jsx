@@ -14,54 +14,9 @@ import { AudioContext, FileContext, URLContext } from '../../contexts/audioConte
 
 
 
-const WaveSurferComponent = ({ wavesurfer }) => {
+const WaveSurferComponent = () => {
     const audio = useContext(AudioContext);
-    const url = useContext(URLContext);
-
-    
-
-    
-   
-    /* ----------------------------- Equalizer ------------------------------------ */
-    
-    // const createEqualizer = useCallback(() => {
-    //     const equalizerBands = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
-
-    //     const filters = equalizerBands.map((band) => {
-    //         const filter = audioContext.createBiquadFilter();
-
-    //         filter.type = band <= 32 ? 'lowshelf' : band >= 16000 ? 'highshelf' : 'peaking';
-    //         filter.gain.value = Math.random() * 40 - 20;
-    //         filter.Q.value = 1; // resonance
-    //         filter.frequency.value = band; // the cut-off frequency
-
-    //         return filter;
-    //     });
-
-    //     const mediaElement = audioContext.createMediaElementSource(new Audio(url));
-    //     console.log(mediaElement);
-    // }, []);    
-
-        // wavesurfer.panner = wavesurfer.backend.ac.createStereoPanner();
-        // wavesurfer.backend.setFilter(wavesurfer.panner);
-
-        // audio.addEventListener('canplay', () => {
-        //     // Create a MediaElementSourceNode from the audio element
-        //     const mediaNode = audioContext.createMediaElementSource(audio);
-    
-        //     console.log(filters);
-        //     // Connect the filters and media node sequentially
-        //     const equalizer = filters.reduce((prev, curr) => {
-        //         prev.connect(curr);
-            
-        //         return curr;
-        //     }, mediaNode);
-    
-        //     // Connect the filters to the audio output
-        //     equalizer.connect(audioContext.destination);
-        // }, { once: true });
-
-    
+    const url = useContext(URLContext);    
 
     return (
         <>
