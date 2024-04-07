@@ -57,3 +57,22 @@
     left: 0;
     z-index: 3;
 }
+
+.control-buttons-container {
+    margin: 1em 0;
+}
+
+.button {
+    cursor: pointer;
+    padding: 0.5em;
+    border-radius: 5px;
+}
+
+.button:hover {
+    background-color: lightblue;
+}
+
+.play-pause-button, .skip-button, .stop-button {
+    background: none;
+    border: none;
+}

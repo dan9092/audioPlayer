@@ -1,5 +1,6 @@
-import React, { useCallback, useRef, useContext, useState, useEffect, useMemo } from 'react';
+import React, { useCallback, useRef, useContext, useState, useEffect, useMemo, memo } from 'react';
 import { URLContext } from '../../contexts/audioContext';
+import WaveSurfer from 'wavesurfer.js';
 import { useWavesurfer, useRegionEvent } from '@wavesurfer/react';
 import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline.esm.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
@@ -9,6 +10,8 @@ import MinimapPlugin from 'wavesurfer.js/dist/plugins/minimap.esm.js';
 import SpectrogramPlugin from 'wavesurfer.js/dist/plugins/spectrogram.esm.js';
 import createColormap from 'colormap';
 import { v4 as uuidv4 } from 'uuid';
+import { FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import { faBackward, faBackwardStep, faForward, faForwardStep, faGauge, faPause, faPlay, faStop, faVolumeHigh, faVolumeLow, faVolumeXmark } from '@fortawesome/free-solid-svg-icons';
 import './audioControls.css';
 
 
@@ -40,7 +43,7 @@ const AudioControlsComponent = () => {
             dragSelection: true,
         }),
         TimelinePlugin.create({
-            container: timelineRef,
+            // container: timelin   eRef,
             primaryLabelInterval: 1,
             secondaryLabelInterval: 0.5,
             secondaryLabelOpacity: 0.75,
@@ -69,23 +72,9 @@ const AudioControlsComponent = () => {
         
     ], []);
 
-    const { wavesurfer, isPlaying, currentTime } = useWavesurfer({
-        container: containerRef,
-        height: 100,
-        waveColor: 'rgb(200, 0, 200)',
-        progressColor: 'rgb(100, 0, 100)',
-        fillParent: true,
-        normalize: true,
-        minPxPerSec: 100,
-        barWidth: 5,
-        barRadius: 4,
-        barGap: 3,
-        // backend: 'MediaElementWebAudio',
-        cursorWidth: 1,
-        media: audio,
-        splitChannels: true,
-        plugins: plugins,
-    });
+    const [wavesurfer, setWavesurfer] = useState(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [currentTime, setCurrentTime] = useState(0);
 
     const [audioContext, setAudioContext] = useState(new AudioContext());
     const [splitter, setSplitter] = useState(audioContext.createChannelSplitter(2));
@@ -101,7 +90,9 @@ const AudioControlsComponent = () => {
 
     const onWavesurferReady = useCallback(() => {
         console.log("Wavesurfer is ready");
-        wavesurfer.plugins[0] && wavesurfer.plugins[0].enableDragSelection({color: randomColor()});  
+        wavesurfer.plugins[0] && wavesurfer.plugins[0].enableDragSelection({color: randomColor()}); 
+        setCurrentTime(wavesurfer.getCurrentTime());
+        setIsPlaying(wavesurfer.isPlaying()); 
     }, [wavesurfer]);
 
     const handleFinish = useCallback(() => {
@@ -109,14 +100,41 @@ const AudioControlsComponent = () => {
         wavesurfer.play();
     }, [wavesurfer]);
 
+    const onWavesurferDestroy = useCallback(() => {
+        wavesurfer.unAll();
+        wavesurfer.destroy();
+    }, [wavesurfer]);
+
     const volumeRef = useRef(null);
-    const [volume, setVolume] = useState(100);    
+    const [volume, setVolume] = useState(100);
+    const [volumeIcon, setVolumeIcon] = useState(faVolumeHigh);
+
+    const getVolumeIcon = useCallback((value) => {
+        if (value == 0) 
+            return faVolumeXmark;
+
+        if (value < 50) 
+            return faVolumeLow;
+        
+        return faVolumeHigh;
+    }, []); 
+
     const handleVolumeInput = useCallback(() => {
         console.log('Volume changed');
         const newVolume = Number(volumeRef.current.value);
+        const volumeLabel = (newVolume * 100).toFixed();
 
         wavesurfer.setVolume(newVolume);
-        setVolume((newVolume * 100).toFixed());
+        setVolume(volumeLabel);
+        setVolumeIcon(getVolumeIcon(volumeLabel));        
+    }, [wavesurfer]);
+
+    const toggleMuteWavesurfer = useCallback(() => {
+        const shouldMute = !wavesurfer.getMuted();
+
+        wavesurfer.setMuted(shouldMute);
+
+        setVolumeIcon((prevVolumeIcon) => shouldMute ? faVolumeXmark : prevVolumeIcon);
     }, [wavesurfer]);
 
 
@@ -147,9 +165,11 @@ const AudioControlsComponent = () => {
 
     const playbackRateRef = useRef(null);
     const [playbackRate, setPlaybackRate] = useState(1);
-    const handlePlaybackRateInput = useCallback(() => {
-        console.log('playback rate changed', playbackRateRef.current.value);
-        const newPlaybackRate = Number(playbackRateRef.current.value);
+    const playbackRates = [0.25, 0.50, 0.55, 0.65, 0.75, 0.85, 1, 1.30, 1.50, 1.70, 2];
+    const handlePlaybackRateInput = useCallback((event) => {
+        const newPlaybackRate = playbackRates[event.target.valueAsNumber].toFixed(2);
+
+        console.log('playback rate changed', newPlaybackRate);
         wavesurfer.setPlaybackRate(newPlaybackRate, true); // preserve pitch
         setPlaybackRate(newPlaybackRate);
     }, [wavesurfer]);
@@ -382,6 +402,35 @@ const AudioControlsComponent = () => {
 
    /* ----------------------------- useEffects ------------------------------------ */
 
+   useEffect(() => {
+        if (!containerRef.current) return;
+
+        const ws = WaveSurfer.create({
+            container: containerRef.current,
+            height: 100,
+            waveColor: 'rgb(200, 0, 200)',
+            progressColor: 'rgb(100, 0, 100)',
+            fillParent: true,
+            normalize: true,
+            minPxPerSec: 100,
+            barWidth: 5,
+            barRadius: 4,
+            barGap: 3,
+            // backend: 'MediaElementWebAudio',
+            cursorWidth: 1,
+            media: audio,
+            splitChannels: true,
+            plugins: plugins,
+        });
+        
+        setWavesurfer(ws);
+
+        return () => {
+            ws.unAll();
+            ws.destroy();
+        }
+    }, [])
+
     useEffect(() => {
         source.connect(pannerNode);
         pannerNode.connect(splitter);
@@ -403,7 +452,15 @@ const AudioControlsComponent = () => {
 
     wavesurfer.on("loading", handleWavesurferLoading);
 
+    wavesurfer.on("play", () => setIsPlaying(true));
+
+    wavesurfer.on("pause", () => setIsPlaying(false));
+
+    // wavesurfer.on("audioprocess", (time) => setCurrentTime(time));
+
     wavesurfer.on('finish', handleFinish);
+
+    wavesurfer.on('destroy', onWavesurferDestroy);
 
     wavesurfer.registerPlugin(
         SpectrogramPlugin.create({
@@ -462,8 +519,7 @@ const AudioControlsComponent = () => {
 
     return (
         <>
-            <div className="wavesurfer-container" ref={containerRef}>
-            </div>
+            <div className="wavesurfer-container" ref={containerRef}></div>            
             <div className="timeline-container" ref={timelineRef}></div>
             <div className='loop-regions-checkbox-container'>
                 <label htmlFor='loop-regions-checkbox'>Loop</label>
@@ -471,41 +527,54 @@ const AudioControlsComponent = () => {
             </div>
             <div className="audio-controls-with-equalizer">
                 <div className="controls">
-                    <p>Audio: {url}</p>
                     <p>Current time: {formatTime(currentTime)} / {wavesurfer ? formatTime(wavesurfer.getDuration()) : '00:00'}</p>
+                    
                     <div className='controls-container'>
                         <div className='control-buttons-container'>
-                            <button onClick={onPlayPause} className='play-pause-button button'>
-                                {isPlaying ? 'Pause' : 'Play'}
-                            </button>
-                            <button onClick={onStop} className='stop-button button'>
-                                stop
-                            </button>
                             <button onClick={() => onSkip(-5)} className='skip-button button'>
-                                Back 5s
+                                <FontAwesomeIcon icon={faBackward} className='fa-xl' />
+                            </button>
+                            <button onClick={() => onSkip(-2)} className='skip-button button'>
+                                <FontAwesomeIcon icon={faBackwardStep} className='fa-xl' />
+                            </button>
+                            <button onClick={onPlayPause} className='play-pause-button button'>
+                                <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} className='fa-xl' />
+                            </button>
+                            <button onClick={() => onSkip(2)} className='skip-button button'>
+                                <FontAwesomeIcon icon={faForwardStep} className='fa-xl' />
                             </button>
                             <button onClick={() => onSkip(5)} className='skip-button button'>
-                                Forward 5s
+                                <FontAwesomeIcon icon={faForward} className='fa-xl' />
+                            </button>
+                            <button onClick={onStop} className='stop-button button'>
+                                <FontAwesomeIcon icon={faStop} className='fa-xl' />
                             </button>
                         </div>
                         <div className='speed-container'>
-                            <label htmlFor='speed-input'>Speed</label>
+                            <label htmlFor='speed-input'>
+                                <FontAwesomeIcon icon={faGauge} className='fa-lg' />
+                            </label>
                             <input 
                                 id='speed-input'
                                 type='range'
                                 data-action='speed'
                                 ref={playbackRateRef}
-                                onInput={handlePlaybackRateInput}   
-                                min={0.25}
-                                max={4}
-                                step={0.05}
-                                defaultValue={1}
+                                onInput={(e) => handlePlaybackRateInput(e)}   
+                                min={0}
+                                max={playbackRates.length - 1}
+                                step={1}
+                                defaultValue={6}
                                 className='volume-input'
                             />
                             <span>X{playbackRate}</span>
                         </div>
                         <div className='volume-container'>
-                            <label htmlFor='volume-input'>Volume</label>
+                            <label htmlFor='volume-input'>
+                                <FontAwesomeIcon 
+                                    icon={volumeIcon}
+                                    className='fa-lg'
+                                    onClick={toggleMuteWavesurfer} />
+                            </label>
                             <input 
                                 id='volume-input'
                                 type='range'
@@ -583,7 +652,7 @@ const AudioControlsComponent = () => {
                         }   
                         </select>
                     </div>
-                </div>
+                </div> 
                 <div className="equalizer">
                     <div className="equalizer-buttons-container">
                         <button className='reset-equalizers-button' onClick={resetEqualizer}>Reset</button>
@@ -619,7 +688,7 @@ const AudioControlsComponent = () => {
                             })
                         }
                     </div>
-                </div>
+                </div> 
             </div> 
         </>
                 
