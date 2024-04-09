@@ -1,6 +1,11 @@
 import React, { useCallback, useState } from "react";
 import { AudioContext, FileContext, URLContext } from '../../contexts/audioContext';
 import AudioControlsComponent from "../playerControls/PlayerControlsComponent";
+import { faArrowUpFromBracket } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import axios from "axios";
+import MultitrackComponent from "../multitrack/MultitrackComponent";
+import './PlayerComponent.css';
 
 const PlayerComponent = () => {
     const [audio, setAudio] = useState(new Audio());
@@ -17,8 +22,13 @@ const PlayerComponent = () => {
       const uploadedFile = event.currentTarget.files[0];
   
       if (isFileValid(uploadedFile)) {
-        setUrl(URL.createObjectURL(uploadedFile));
         setFile(uploadedFile)
+
+        const formData = new FormData();
+        
+        formData.append("audioFile", uploadedFile, uploadedFile.name);
+        
+        axios.post("api/uploadFile", formData).then((response) => setUrl(response));
       }
     }, []);
 
@@ -35,14 +45,15 @@ const PlayerComponent = () => {
                             accept='audio/*'
                             onInput={(e) => handleFileInput(e)}
                             />
-                            <label htmlFor='upload-file-input' className='upload-file'>טען קובץ שמע</label>
+                            <label htmlFor='upload-file-input'>
+                                <FontAwesomeIcon icon={faArrowUpFromBracket} className='fa-lg button' />
+                            </label>
                         </div>
                         <p>Audio: {url}</p>
                         <div className='wavesurfer-container'>
-                            <AudioControlsComponent />
-                            {/* <PlayerComponent /> */}
+                            {/* <AudioControlsComponent /> */}
                         </div>
-                        {/* <MultitrackComponent></MultitrackComponent> */}
+                        <MultitrackComponent />
                     </>
                 </URLContext.Provider>
             </FileContext.Provider>

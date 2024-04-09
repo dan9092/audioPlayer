@@ -95,7 +95,6 @@
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    gap: 1em;
 }
 
 .checkbox-container > label, .checkbox-container > input {
@@ -113,6 +112,7 @@
     justify-content: space-evenly;
     align-items: flex-end;
     margin-bottom: 2.75em;
+    margin-left: 1em;
 }
 
 .volume-value {
