@@ -5,7 +5,7 @@ import AudioControlsComponent from "../playerControls/PlayerControlsComponent";
 const PlayerComponent = () => {
     const [audio, setAudio] = useState(new Audio());
     const [file, setFile] = useState(null);
-    const [url, setUrl] = useState('/audio/audio4.mp3');
+    const [url, setUrl] = useState('/audio/audio5.ogg');
   
     const isFileValid = useCallback((file) => {
       console.log(file);

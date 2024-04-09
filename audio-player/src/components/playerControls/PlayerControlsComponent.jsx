@@ -11,7 +11,7 @@ import SpectrogramPlugin from 'wavesurfer.js/dist/plugins/spectrogram.esm.js';
 import createColormap from 'colormap';
 import { v4 as uuidv4 } from 'uuid';
 import { FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faBackward, faBackwardStep, faForward, faForwardStep, faGauge, faHeadphones, faPause, faPlay, faStop, faVolumeHigh, faVolumeLow, faVolumeXmark } from '@fortawesome/free-solid-svg-icons';
+import { faBackward, faBackwardStep, faForward, faForwardStep, faGauge, faHeadphones, faPause, faPlay, faRepeat, faStop, faVolumeHigh, faVolumeLow, faVolumeXmark } from '@fortawesome/free-solid-svg-icons';
 import './playerControls.css';
 
 
@@ -43,16 +43,15 @@ const PlayerControlsComponent = () => {
             dragSelection: true,
         }),
         TimelinePlugin.create({
-            // container: timelin   eRef,
             primaryLabelInterval: 1,
             secondaryLabelInterval: 0.5,
             secondaryLabelOpacity: 0.75,
             // timeIntreval: 10,
-            // style: {
-            //     fontSize: '0.75rem',
-            //     fontWeight: '500',
-            //     margin: '1em 0',
-            // },
+            style: {
+                fontSize: '0.75rem',
+                fontWeight: '500',
+                margin: '1em 0',
+            },
         }),
         // ZoomPlugin.create({
         //     scale: 0.5,
@@ -77,14 +76,6 @@ const PlayerControlsComponent = () => {
     const [currentTime, setCurrentTime] = useState(0);
     const [isMultipleChannels, setIsMultipleChannels] = useState(false);
     const [spectrogram, setSpectrogram] = useState(false);
-
-    const [audioContext, setAudioContext] = useState(new AudioContext());
-    const [splitter, setSplitter] = useState(audioContext.createChannelSplitter(2));
-    const [merger, setMerger] = useState(audioContext.createChannelMerger(2));
-    const [leftGain, setLeftGain] = useState(audioContext.createGain());
-    const [rightGain, setRightGain] = useState(audioContext.createGain());
-    const [source, setSource] = useState(!audio.src && audioContext.createMediaElementSource(audio));
-    const [pannerNode, setPannerNode] = useState(audioContext.createStereoPanner());
 
     const handleWavesurferLoading = useCallback((data) => {
         console.log("loading --> ", data);
@@ -206,11 +197,6 @@ const PlayerControlsComponent = () => {
         });
     }, [rightVolumeIcon]);
 
-    const pannerRef = useRef(null);
-    const handleSliderInput = useCallback(() => {
-        pannerNode.pan.setValueAtTime(Number(pannerRef.current.value), audioContext.currentTime);
-    }, []);
-
     const playbackRateRef = useRef(null);
     const [playbackRate, setPlaybackRate] = useState(1);
     const playbackRates = [0.25, 0.50, 0.55, 0.65, 0.75, 0.85, 1, 1.30, 1.50, 1.70, 2];
@@ -242,93 +228,38 @@ const PlayerControlsComponent = () => {
                 wavesurfer.skip(seconds);
             }
         }
-    }, [wavesurfer]);
+    }, [wavesurfer]);  
 
-    const channelsDivisionRef = useRef(null);
-    const [selectedChannelsDivision, setSelectedChannelsDivision] = useState("none");
-    const channelsDivision = [
-        {
-            value: "none",
-            title: "L <- -> R הפרדה",
-        },
-        {
-            value: "both",
-            title: "L + R איחוד",
-        },
-        {
-            value: "left",
-            title: "L <- -> L שמאל בלבד",
-        },
-        {
-            value: "right",
-            title: "R <- -> R ימין בלבד",
-        }
-    ];
+    /* ----------------------------- Audio ------------------------------------ */
 
-    const disablePanner = useCallback((disabled) => {
-        pannerRef.current.disabled = disabled;
-    }, []);
+    const [audioContext, setAudioContext] = useState(new AudioContext());
+    const [splitter, setSplitter] = useState(audioContext.createChannelSplitter(2));
+    const [merger, setMerger] = useState(audioContext.createChannelMerger(2));
+    const [leftGain, setLeftGain] = useState(audioContext.createGain());
+    const [rightGain, setRightGain] = useState(audioContext.createGain());
+    const [source, setSource] = useState(!audio.src && audioContext.createMediaElementSource(audio));
+    const [pannerNode, setPannerNode] = useState(audioContext.createStereoPanner());
+    const [isTopLeftActive, setIsTopLeftActive] = useState(false);
+    const [isTopRightActive, setIsTopRightActive] = useState(false);
+    const [isBottomLeftActive, setIsBottomLeftActive] = useState(false);
+    const [isBottomRightActive, setIsBottomRightActive] = useState(false);
 
-    const handleChannelsDivisionInput = useCallback((e) => {
-        console.log('channels division changed');
-        
-        const wasPlaying = wavesurfer.isPlaying();
-
-        wasPlaying && wavesurfer.pause();
-        
-        disablePanner(true);
-        setSelectedChannelsDivision(channelsDivisionRef.current.value);
-        
-        leftGain.disconnect();
+    const setDufaultAudioDivision = useCallback(() => {
+        source.connect(pannerNode);
+        pannerNode.connect(splitter);
+        splitter.connect(leftGain, 0);
+        splitter.connect(rightGain, 1);
         leftGain.connect(merger, 0, 0);
-        rightGain.disconnect();
         rightGain.connect(merger, 0, 1);
-
-        switch (channelsDivisionRef.current.value) {
-            case "none":
-                disablePanner(false);
-                pannerNode.pan.setValueAtTime(0, audioContext.currentTime);
-                pannerRef.current.value = 0;
-
-                break;
-            case "both": {
-                leftGain.disconnect();
-                leftGain.connect(merger, 0, 0);
-                leftGain.connect(merger, 0, 1);
-                rightGain.disconnect();
-                rightGain.connect(merger, 0, 0);
-                rightGain.connect(merger, 0, 1);
-                pannerRef.current.value = 0;
-
-                break;
-            }
-            case "left": {
-                rightGain.disconnect();
-                rightGain.connect(merger, 0, 0);
-                pannerRef.current.value = -1;
-
-                break;
-            }
-            case "right": {
-                leftGain.disconnect();
-                leftGain.connect(merger, 0, 1);
-                pannerRef.current.value = 1;
-
-                break;
-            }
-            default: {
-                break;
-            }
-        }
-
-        wasPlaying && wavesurfer.play();
-    }, [wavesurfer]);
+        merger.connect(audioContext.destination);
+    }, []);
 
     /* ----------------------------- Regions ------------------------------------ */
 
-    const loopRegionsRef = useRef(null); 
     const [regions, setRegions] = useState([]);
     const [orderedRegions, setOrderedRegions] = useState([]);
+    const [loopRegions, setLoopRegions] = useState(false);
+    const loopRegionsRef = useRef(null);
 
     const findRegionLocation = useMemo(() => (region, regionsArray) => {
         let left = 0;
@@ -373,6 +304,7 @@ const PlayerControlsComponent = () => {
 
     const handleRegionOut = useCallback((region) => {        
         console.log('region-out -->', region);
+        console.log('loop regions state -->', loopRegionsRef.current.checked);
 
         if (loopRegionsRef.current.checked) {
             region.play();
@@ -501,25 +433,18 @@ const PlayerControlsComponent = () => {
         setWavesurfer(ws);
 
         return () => {
-            ws.unAll();
             ws.destroy();
         }
     }, [isMultipleChannels, spectrogram])
 
     useEffect(() => {
-        source.connect(pannerNode);
-        pannerNode.connect(splitter);
-        splitter.connect(leftGain, 0);
-        splitter.connect(rightGain, 1);
-        leftGain.connect(merger, 0, 0);
-        rightGain.connect(merger, 0, 1);
-        merger.connect(audioContext.destination);
+        setDufaultAudioDivision();
         
     }, [audio, audioContext])
 
    useEffect(() => {
     if (!wavesurfer) return;
-    console.log("started");
+
     registerRegionPluginEvents();
 
     wavesurfer.markers && wavesurfer.clearMarkers();
@@ -587,8 +512,6 @@ const PlayerControlsComponent = () => {
             return curr;
         }, source);
 
-        console.log(equalizer);
-
         equalizer.connect(merger);
     }, [equalizerFilters])
 
@@ -596,18 +519,112 @@ const PlayerControlsComponent = () => {
         createEqualizer();
     }, [])
 
+    useEffect(() => {
+        leftGain.disconnect();
+        leftGain.connect(merger, 0, 0);
+        rightGain.disconnect();
+        rightGain.connect(merger, 0, 1);
+
+        const all = isTopLeftActive && isTopRightActive && isBottomLeftActive && isBottomRightActive;
+        const topStream = isTopLeftActive && isTopRightActive && !isBottomLeftActive && !isBottomRightActive;
+        const bottomStream = isBottomLeftActive && isBottomRightActive && !isTopLeftActive && !isTopRightActive;
+        const leftSide = isTopLeftActive && isBottomLeftActive && !isTopRightActive && !isBottomRightActive;
+        const rightSide = isTopRightActive && isBottomRightActive && !isTopLeftActive && !isBottomLeftActive;
+        const diagonals = isTopRightActive && isBottomLeftActive && !isTopLeftActive && !isBottomRightActive;
+
+        if (all) {
+            leftGain.connect(merger, 0, 1);
+            rightGain.connect(merger, 0, 1);
+        } else if (topStream) {
+            rightGain.gain.value = 0;
+        } else if (bottomStream) {
+            leftGain.gain.value = 0;
+        } else if (leftSide) {
+            setPannerNode((prevPannerNode) => {
+                prevPannerNode.pan.setValueAtTime(1, audioContext.currentTime);
+
+                return prevPannerNode;
+            })
+        } else if (rightSide) {
+            pannerNode.pan.setValueAtTime(-1, audioContext.currentTime);
+        } else if (diagonals) {
+            pannerNode.pan.setValueAtTime(0, audioContext.currentTime);
+        }
+
+    }, [isTopLeftActive, isTopRightActive, isBottomLeftActive, isBottomRightActive])
+
     return (
         <>
-            <div className="wavesurfer-container" ref={containerRef}></div>      
+            <section className='top-section'>
+                <div className="wavesurfer-container" ref={containerRef} style={{maxWidth: "85%"}}></div>
+                <div className='top-volumes'>
+                    <div className='volume-container'>
+                        <FontAwesomeIcon 
+                            icon={leftVolumeIcon}
+                            className='fa-sm volume-icon'
+                            onClick={toggleMuteLeft}
+                        />
+                        <label htmlFor='left-volume-input'>L</label>
+                        <input 
+                            id='left-volume-input'
+                            type='range'
+                            data-action='leftVolume'
+                            ref={leftVolumeRef}
+                            onInput={handleLeftVolumeInput}    
+                            min={0}
+                            max={1}
+                            step={0.01}
+                            className='volume-input'
+                        />
+                        <span className='volume-value'>{leftVolume}%</span>
+                    </div>
+                    <div className='volume-container'>
+                        <FontAwesomeIcon 
+                            icon={rightVolumeIcon}
+                            className='fa-sm volume-icon'
+                            onClick={toggleMuteRight}
+                        />
+                        <label htmlFor='right-volume-input'>R</label>
+                        <input 
+                            id='right-volume-input'
+                            type='range'
+                            data-action='rightVolume'
+                            ref={rightVolumeRef}
+                            onInput={handleRightVolumeInput}   
+                            min={0}
+                            max={1}
+                            step={0.01}
+                            className='volume-input'
+                        />
+                        <span className='volume-value'>{rightVolume}%</span>
+                    </div>
+                </div>  
+            </section>                
             <div className='wavesurfer-data-container'>
                 <p>Current time: {formatTime(currentTime)} / {wavesurfer ? formatTime(wavesurfer.getDuration()) : '00:00'}</p>
                 <div className='checkbox-container'>
-                    <label htmlFor='loop-regions-checkbox'>Loop</label>
-                    <input type='checkbox' id='loop-regions-checkbox' ref={loopRegionsRef}></input>
+                    <label htmlFor='loop-regions-checkbox'>
+                        <FontAwesomeIcon 
+                            icon={faRepeat}
+                            className={regions.length === 0 ? 'fa-sm button disabled' : 'fa-sm button'}
+                            color={loopRegions ? 'orange' : 'black'}
+                        />
+                    </label>
+                    <input 
+                        type='checkbox'
+                        id='loop-regions-checkbox'
+                        ref={loopRegionsRef}
+                        onInput={(e) => setLoopRegions(e.currentTarget.checked)} 
+                        style={{display: "none"}}
+                    />
                 </div>
                 <div className='checkbox-container'>
                     <label htmlFor='spectrogram-checkbox'>Spectrogram</label>
-                    <input type='checkbox' id='spectrogram-checkbox' onInput={(e) => setSpectrogram(e.currentTarget.checked)}></input>
+                    <input 
+                        type='checkbox'
+                        id='spectrogram-checkbox'
+                        onInput={(e) => setSpectrogram(e.currentTarget.checked)}
+                    />
                 </div>
             </div>
             
@@ -671,49 +688,9 @@ const PlayerControlsComponent = () => {
                                 defaultValue={1}
                                 className='volume-input'
                             />
-                            <span>{volume}%</span>
+                            <span className='volume-value'>{volume}%</span>
                         </div>
-                        <p>Channels:</p>
-                        <div className='volume-container'>
-                            <FontAwesomeIcon 
-                                icon={leftVolumeIcon}
-                                className='fa-sm volume-icon'
-                                onClick={toggleMuteLeft}
-                            />
-                            <label htmlFor='left-volume-input'>L</label>
-                            <input 
-                                id='left-volume-input'
-                                type='range'
-                                data-action='leftVolume'
-                                ref={leftVolumeRef}
-                                onInput={handleLeftVolumeInput}    
-                                min={0}
-                                max={1}
-                                step={0.01}
-                                className='volume-input'
-                            />
-                            <span>{leftVolume}%</span>
-                        </div>
-                        <div className='volume-container'>
-                            <FontAwesomeIcon 
-                                icon={rightVolumeIcon}
-                                className='fa-sm volume-icon'
-                                onClick={toggleMuteRight}
-                            />
-                            <label htmlFor='right-volume-input'>R</label>
-                            <input 
-                                id='right-volume-input'
-                                type='range'
-                                data-action='rightVolume'
-                                ref={rightVolumeRef}
-                                onInput={handleRightVolumeInput}   
-                                min={0}
-                                max={1}
-                                step={0.01}
-                                className='volume-input'
-                            />
-                            <span>{rightVolume}%</span>
-                        </div>
+                        {/* <p>Channels:</p>
                         <div className='left-right-panner-container'>
                             <FontAwesomeIcon 
                                 icon={faHeadphones}
@@ -731,9 +708,9 @@ const PlayerControlsComponent = () => {
                                 onInput={handleSliderInput}    
                             />
                             <label>R</label>
-                        </div>
+                        </div> */}
                     </div>
-                    <div className='channels-division-container'>
+                    {/* <div className='channels-division-container'>
                         <select
                             className='channels-division-select'
                             ref={channelsDivisionRef}
@@ -748,6 +725,32 @@ const PlayerControlsComponent = () => {
                             })
                         }   
                         </select>
+                    </div> */}
+                    <div className='channels-squares'>
+                        <div className='stream-squares-container'>
+                            <div 
+                                className="square"
+                                onClick={() => setIsTopLeftActive((prevState) => !prevState)}
+                                style={{backgroundColor: isTopLeftActive ? "lightblue" : "white"}}
+                            ></div>
+                            <div 
+                                className="square"
+                                onClick={() => setIsTopRightActive((prevState) => !prevState)}
+                                style={{backgroundColor: isTopRightActive ? "lightblue" : "white"}}
+                            ></div>
+                        </div>
+                        <div className='stream-squares-container'>
+                            <div 
+                                className="square"
+                                onClick={() => setIsBottomLeftActive((prevState) => !prevState)}
+                                style={{backgroundColor: isBottomLeftActive ? "lightblue" : "white"}}
+                            ></div>
+                            <div 
+                                className="square"
+                                onClick={() => setIsBottomRightActive((prevState) => !prevState)}
+                                style={{backgroundColor: isBottomRightActive ? "lightblue" : "white"}}
+                            ></div>
+                        </div>
                     </div>
                 </div> 
                 <div className="equalizer">

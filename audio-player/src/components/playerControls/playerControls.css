@@ -79,7 +79,12 @@
 }
 
 .volume-icon, .headphones-icon {
-    width: 25px;
+    min-width: 25px;
+    max-width: 25px;
+}
+
+.volume-container {
+    width: 210px;
 }
 
 .volume-icon {
@@ -94,5 +99,44 @@
 }
 
 .checkbox-container > label, .checkbox-container > input {
+    cursor: pointer;
+}
+
+.top-section {
+    display: flex;
+    justify-content: space-between;
+}
+
+.top-volumes {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: flex-end;
+    margin-bottom: 2.75em;
+}
+
+.volume-value {
+    width: 25px;
+}
+
+.disabled {
+    pointer-events: none;
+    color: grey;
+}
+
+.channels-squares {
+    display: flex;
+    flex-direction: column;
+    margin-top: 1em;
+}
+
+.stream-squares-container {
+    display: flex;
+}
+
+.square {
+    width: 50px;
+    height: 50px;
+    border: 1px solid;
     cursor: pointer;
 }
