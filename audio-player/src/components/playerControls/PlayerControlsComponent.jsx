@@ -11,8 +11,9 @@ import SpectrogramPlugin from 'wavesurfer.js/dist/plugins/spectrogram.esm.js';
 import createColormap from 'colormap';
 import { v4 as uuidv4 } from 'uuid';
 import { FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faBackward, faBackwardStep, faForward, faForwardStep, faGauge, faHeadphones, faPause, faPlay, faRepeat, faStop, faVolumeHigh, faVolumeLow, faVolumeXmark } from '@fortawesome/free-solid-svg-icons';
+import { faBackward, faBackwardFast, faBackwardStep, faForward, faForwardFast, faForwardStep, faGauge, faHeadphones, faPause, faPlay, faRepeat, faStop, faVolumeHigh, faVolumeLow, faVolumeXmark } from '@fortawesome/free-solid-svg-icons';
 import './playerControls.css';
+import ChannelsSquaresComponent from '../channelsSquaresComponent/ChannelsSquaresComponent';
 
 
 const formatTime = (seconds) => [seconds / 3600, seconds / 60 % 60, seconds % 60].map((v) => `0${Math.floor(v)}`.slice(-2)).join(':');
@@ -99,6 +100,12 @@ const PlayerControlsComponent = () => {
         wavesurfer.destroy();
     }, [wavesurfer]);
 
+    const onWavesurferDecode = useCallback(() => {
+        const data = wavesurfer.getDecodedData();
+        console.log('wavesurfer decoded data -->', data);
+        setDecodedData(data);
+    }, [wavesurfer]);
+
     const volumeRef = useRef(null);
     const [volume, setVolume] = useState(100);
     const [volumeIcon, setVolumeIcon] = useState(faVolumeHigh);
@@ -107,7 +114,7 @@ const PlayerControlsComponent = () => {
         if (value == 0) 
             return faVolumeXmark;
 
-        if (value < 50) 
+        if (value <= 50) 
             return faVolumeLow;
         
         return faVolumeHigh;
@@ -412,8 +419,6 @@ const PlayerControlsComponent = () => {
         );
     })
 
-    const [minPixelsPerSecend, setMinPixelsPerSecond] = useState(0);
-
    /* ----------------------------- useEffects ------------------------------------ */
 
    useEffect(() => {
@@ -432,8 +437,9 @@ const PlayerControlsComponent = () => {
             barGap: 3,
             // backend: 'MediaElementWebAudio',
             cursorWidth: 1,
+            hideScrollbar: true,
             media: audio,
-            minPxPerSec: minPixelsPerSecend,
+            minPxPerSec: 100,
             splitChannels: true,
             plugins: plugins,
         });
@@ -443,7 +449,7 @@ const PlayerControlsComponent = () => {
         return () => {
             ws.destroy();
         }
-    }, [spectrogram, minPixelsPerSecend])
+    }, [spectrogram])
 
     useEffect(() => {
         disconnectAllAudioNodes();
@@ -462,24 +468,7 @@ const PlayerControlsComponent = () => {
 
     wavesurfer.on("loading", handleWavesurferLoading);
 
-    wavesurfer.on("decode", () => {
-        const data = wavesurfer.getDecodedData();
-        console.log('wavesurfer decoded data -->', data);
-
-        if (data.duration < 30) {
-            setMinPixelsPerSecond(100);
-        } else if (data.duration < 60) {
-            setMinPixelsPerSecond(25);  
-        } else if (data.duration < 1800) {
-            setMinPixelsPerSecond(8);
-        } else if (data.duration < 3600) {
-            setMinPixelsPerSecond(1);
-        } else {
-            setMinPixelsPerSecond(0.30);
-        }
-
-        setDecodedData(data);
-    });
+    wavesurfer.on("decode", onWavesurferDecode);
 
     wavesurfer.on("play", () => setIsPlaying(true));
 
@@ -600,180 +589,163 @@ const PlayerControlsComponent = () => {
             <section className='top-section'>
                 <div className="wavesurfer-container" ref={containerRef} style={{maxWidth: "85%"}}></div>
                 <div 
-                    className='top-volumes'
-                    style={{display: decodedData && decodedData.numberOfChannels !== 1 ? 'flex' : 'none'}}
+                    className='wavesurfer-top-volumes'
+                    style={{display: decodedData && decodedData.numberOfChannels !== 1 ? 'block' : 'none'}}
                 >
-                    <div className='volume-container'>
-                        <FontAwesomeIcon 
-                            icon={leftVolumeIcon}
-                            className={areDiagonalsActive ? 'fa-sm volume-icon' : 'fa-sm volume-icon disabled'}
-                            onClick={toggleMuteLeft}
-                        />
-                        <input 
-                            id='left-volume-input'
-                            type='range'
-                            data-action='leftVolume'
-                            ref={leftVolumeRef}
-                            onInput={handleLeftVolumeInput}    
-                            min={0}
-                            max={1}
-                            step={0.01}
-                            // disabled if diagonals are not active
-                            disabled={!areDiagonalsActive}
-                            className='volume-input'
-                        />
-                        <span className='volume-value'>{leftVolume}%</span>
-                    </div>
-                    <div className='volume-container'>
-                        <FontAwesomeIcon 
-                            icon={rightVolumeIcon}
-                            className={areDiagonalsActive ? 'fa-sm volume-icon' : 'fa-sm volume-icon disabled'}
-                            onClick={toggleMuteRight}
-                        />
-                        <input 
-                            id='right-volume-input'
-                            type='range'
-                            data-action='rightVolume'
-                            ref={rightVolumeRef}
-                            onInput={handleRightVolumeInput}   
-                            min={0}
-                            max={1}
-                            step={0.01}
-                            className='volume-input'
-                            // disabled if diagonals are not active
-                            disabled={!areDiagonalsActive}
-                        />
-                        <span className='volume-value'>{rightVolume}%</span>
-                    </div>
-                </div>  
-            </section>                
-            <div className='wavesurfer-data-container'>
-                <p>Current time: {formatTime(currentTime)} / {wavesurfer ? formatTime(wavesurfer.getDuration()) : '00:00'}</p>
-                <div className='checkbox-container'>
-                    <label htmlFor='loop-regions-checkbox'>
-                        <FontAwesomeIcon 
-                            icon={faRepeat}
-                            className={regions.length === 0 ? 'fa-sm button disabled' : 'fa-sm button'}
-                            color={loopRegions ? 'orange' : 'black'}
-                        />
-                    </label>
-                    <input 
-                        type='checkbox'
-                        id='loop-regions-checkbox'
-                        ref={loopRegionsRef}
-                        onInput={(e) => setLoopRegions(e.currentTarget.checked)} 
-                        style={{display: "none"}}
-                    />
-                </div>
-                <div className='checkbox-container'>
-                    <label htmlFor='spectrogram-checkbox'>Spectrogram</label>
-                    <input 
-                        type='checkbox'
-                        id='spectrogram-checkbox'
-                        onInput={(e) => setSpectrogram(e.currentTarget.checked)}
-                    />
-                </div>
-            </div>
-            
-            <div className="audio-controls-with-equalizer">
-                <div className="controls">
-                    <div className='controls-container'>
-                        <div className='control-buttons-container'>
-                            <button onClick={() => onSkip(-5)} className='skip-button button'>
-                                <FontAwesomeIcon icon={faBackward} className='fa-xl' />
-                            </button>
-                            <button onClick={() => onSkip(-2)} className='skip-button button'>
-                                <FontAwesomeIcon icon={faBackwardStep} className='fa-xl' />
-                            </button>
-                            <button onClick={onPlayPause} className='play-pause-button button'>
-                                <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} className='fa-xl' />
-                            </button>
-                            <button onClick={() => onSkip(2)} className='skip-button button'>
-                                <FontAwesomeIcon icon={faForwardStep} className='fa-xl' />
-                            </button>
-                            <button onClick={() => onSkip(5)} className='skip-button button'>
-                                <FontAwesomeIcon icon={faForward} className='fa-xl' />
-                            </button>
-                            <button onClick={onStop} className='stop-button button'>
-                                <FontAwesomeIcon icon={faStop} className='fa-xl' />
-                            </button>
-                        </div>
-                        <div className='speed-container'>
-                            <label htmlFor='speed-input'>
-                                <FontAwesomeIcon icon={faGauge} className='fa-sm' />
-                            </label>
-                            <input 
-                                id='speed-input'
-                                type='range'
-                                data-action='speed'
-                                ref={playbackRateRef}
-                                onInput={(e) => handlePlaybackRateInput(e)}   
-                                min={0}
-                                max={playbackRates.length - 1}
-                                step={1}
-                                defaultValue={6}
-                                className='volume-input'
-                            />
-                            <span>X{playbackRate}</span>
-                        </div>
+                    <div className='wavesurfer-stream-container'>
                         <div className='volume-container'>
-                            <label htmlFor='volume-input'>
-                                <FontAwesomeIcon 
-                                    icon={volumeIcon}
-                                    className='fa-sm volume-icon'
-                                    onClick={toggleMuteWavesurfer} />
-                            </label>
+                            <FontAwesomeIcon 
+                                icon={leftVolumeIcon}
+                                className={areDiagonalsActive ? 'fa-sm volume-icon' : 'fa-sm volume-icon disabled'}
+                                onClick={toggleMuteLeft}
+                            />
                             <input 
-                                id='volume-input'
+                                id='left-volume-input'
                                 type='range'
-                                data-action='volume'
-                                ref={volumeRef}
-                                onInput={handleVolumeInput}   
+                                data-action='leftVolume'
+                                ref={leftVolumeRef}
+                                onInput={handleLeftVolumeInput}    
                                 min={0}
                                 max={1}
                                 step={0.01}
-                                defaultValue={1}
+                                // disabled if diagonals are not active
+                                disabled={!areDiagonalsActive}
                                 className='volume-input'
                             />
-                            <span className='volume-value'>{volume}%</span>
+                            <span className='volume-value'>{leftVolume}%</span>
                         </div>
-                        <div className='channels-squares'>
-                            <div className='stream-squares-container'>
-                                <div 
-                                    className="square"
-                                    onClick={() => setIsTopLeftActive((prevState) => !prevState)}
-                                    style={{backgroundColor: isTopLeftActive ? "lightblue" : "white"}}
-                                ></div>
-                                <div 
-                                    className="square"
-                                    onClick={() => setIsTopRightActive((prevState) => !prevState)}
-                                    style={{backgroundColor: isTopRightActive ? "lightblue" : "white"}}
-                                ></div>
-                            </div>
-                            <div className='stream-squares-container'>
-                                <div 
-                                    className="square"
-                                    onClick={() => setIsBottomLeftActive((prevState) => !prevState)}
-                                    style={{backgroundColor: isBottomLeftActive ? "lightblue" : "white"}}
-                                ></div>
-                                <div 
-                                    className="square"
-                                    onClick={() => setIsBottomRightActive((prevState) => !prevState)}
-                                    style={{backgroundColor: isBottomRightActive ? "lightblue" : "white"}}
-                                ></div>
-                            </div>
+                    </div>
+                    <div className='wavesurfer-stream-container'>
+                        <div className='volume-container'>
+                            <FontAwesomeIcon 
+                                icon={rightVolumeIcon}
+                                className={areDiagonalsActive ? 'fa-sm volume-icon' : 'fa-sm volume-icon disabled'}
+                                onClick={toggleMuteRight}
+                            />
+                            <input 
+                                id='right-volume-input'
+                                type='range'
+                                data-action='rightVolume'
+                                ref={rightVolumeRef}
+                                onInput={handleRightVolumeInput}   
+                                min={0}
+                                max={1}
+                                step={0.01}
+                                className='volume-input'
+                                // disabled if diagonals are not active
+                                disabled={!areDiagonalsActive}
+                            />
+                            <span className='volume-value'>{rightVolume}%</span>
                         </div>
-                    </div> 
+                    </div>
+                </div>  
+            </section>                            
+            <div className='controls-container'>
+                <p className='time'>{formatTime(currentTime)} / {wavesurfer ? formatTime(wavesurfer.getDuration()) : '00:00'}</p>
+                <div className='control-buttons-container'>
+                    <button onClick={() => onSkip(-5)} className='skip-button button'>
+                        <FontAwesomeIcon icon={faBackwardFast} className='fa-xl' />
+                    </button>
+                    <button onClick={() => onSkip(-2)} className='skip-button button'>
+                        <FontAwesomeIcon icon={faBackwardStep} className='fa-xl' />
+                    </button>
+                    <button onClick={onPlayPause} className='play-pause-button button'>
+                        <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} className='fa-xl' />
+                    </button>
+                    <button onClick={() => onSkip(2)} className='skip-button button'>
+                        <FontAwesomeIcon icon={faForwardStep} className='fa-xl' />
+                    </button>
+                    <button onClick={() => onSkip(5)} className='skip-button button'>
+                        <FontAwesomeIcon icon={faForwardFast} className='fa-xl' />
+                    </button>
+                    <button onClick={onStop} className='stop-button button'>
+                        <FontAwesomeIcon icon={faStop} className='fa-xl' />
+                    </button>
                 </div>
-                <div className="equalizer">
-                    <div className="equalizer-buttons-container">
-                        <button className='reset-equalizers-button' onClick={resetEqualizer}>Reset</button>
+                <div className='more-controls'>
+                    <div className='checkbox-container'>
+                        <label htmlFor='loop-regions-checkbox'>
+                            <FontAwesomeIcon 
+                                icon={faRepeat}
+                                className={regions.length === 0 ? 'fa-sm button disabled' : 'fa-sm button'}
+                                color={loopRegions ? 'orange' : 'black'}
+                            />
+                        </label>
+                        <input 
+                            type='checkbox'
+                            id='loop-regions-checkbox'
+                            ref={loopRegionsRef}
+                            onInput={(e) => setLoopRegions(e.currentTarget.checked)} 
+                            style={{display: "none"}}
+                        />
                     </div>
-                    <div className='equalizer-container'>
-                        <hr className='equalizer-zero-line'></hr>
-                        { equalizerSliders }
+                    <ChannelsSquaresComponent
+                        isTopLeftActive={isTopLeftActive}
+                        setIsTopLeftActive={setIsTopLeftActive}
+                        isTopRightActive={isTopRightActive}
+                        setIsTopRightActive={setIsTopRightActive}
+                        isBottomLeftActive={isBottomLeftActive}
+                        setIsBottomLeftActive={setIsBottomLeftActive}
+                        isBottomRightActive={isBottomRightActive}
+                        setIsBottomRightActive={setIsBottomRightActive}
+                    />
+                    <div className='checkbox-container'>
+                        <label htmlFor='spectrogram-checkbox' className='spectrogram-label'>Spectrogram</label>
+                        <input 
+                            type='checkbox'
+                            id='spectrogram-checkbox'
+                            onInput={(e) => setSpectrogram(e.currentTarget.checked)}
+                        />
                     </div>
-                </div> 
+                    <div className='speed-container'>
+                        <label htmlFor='speed-input'>
+                            <FontAwesomeIcon icon={faGauge} className='fa-sm' />
+                        </label>
+                        <input 
+                            id='speed-input'
+                            type='range'
+                            data-action='speed'
+                            ref={playbackRateRef}
+                            onInput={(e) => handlePlaybackRateInput(e)}   
+                            min={0}
+                            max={playbackRates.length - 1}
+                            step={1}
+                            defaultValue={6}
+                            className='volume-input'
+                        />
+                        <span>X{playbackRate}</span>
+                    </div>
+                    <div className='volume-container'>
+                        <label htmlFor='volume-input'>
+                            <FontAwesomeIcon 
+                                icon={volumeIcon}
+                                className='fa-sm volume-icon'
+                                onClick={toggleMuteWavesurfer} />
+                        </label>
+                        <input 
+                            id='volume-input'
+                            type='range'
+                            data-action='volume'
+                            ref={volumeRef}
+                            onInput={handleVolumeInput}   
+                            min={0}
+                            max={1}
+                            step={0.01}
+                            defaultValue={1}
+                            className='volume-input'
+                        />
+                        <span className='volume-value'>{volume}%</span>
+                    </div>
+                </div>
+            </div> 
+            <div className="equalizer">
+                <div className="equalizer-buttons-container">
+                    <button className='reset-equalizers-button' onClick={resetEqualizer}>Reset</button>
+                </div>
+                <div className='equalizer-container'>
+                    <hr className='equalizer-zero-line'></hr>
+                    { equalizerSliders }
+                </div>
             </div> 
         </>
                 

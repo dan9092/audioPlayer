@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { AudioContext, FileContext, URLContext } from '../../contexts/audioContext';
 import AudioControlsComponent from "../playerControls/PlayerControlsComponent";
-import { faArrowUpFromBracket } from "@fortawesome/free-solid-svg-icons";
+import { faArrowUpFromBracket, faBars, faList, faMinus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import axios from "axios";
 import MultitrackComponent from "../multitrack/MultitrackComponent";
@@ -11,7 +11,12 @@ const PlayerComponent = () => {
     const [audio, setAudio] = useState(new Audio());
     const [file, setFile] = useState(null);
     const [url, setUrl] = useState('/audio/audio5.ogg');
-  
+    const [speakersMultiStream, setSpeakersMultiStream] = useState(false);
+
+    const handleMultiSpeakersView = useCallback(() => {
+        setSpeakersMultiStream((prevState) => !prevState);
+    }, []);
+
     const isFileValid = useCallback((file) => {
       console.log(file);
       
@@ -50,10 +55,25 @@ const PlayerComponent = () => {
                             </label>
                         </div>
                         <p>Audio: {url}</p>
-                        <div className='wavesurfer-container'>
-                            {/* <AudioControlsComponent /> */}
+                        <div className=''>
+                            <div className="speakers-view">
+                                <FontAwesomeIcon 
+                                    icon={faMinus}
+                                    className={speakersMultiStream ? "fs-lg speakers-view-button" : "fs-lg speakers-view-button speakers-view-button-active"}
+                                    onClick={handleMultiSpeakersView}
+                                />
+                                <FontAwesomeIcon 
+                                    icon={faList}
+                                    className={speakersMultiStream ? "fs-lg speakers-view-button speakers-view-button-active" : "fs-lg speakers-view-button"}
+                                    onClick={handleMultiSpeakersView}
+                                />
+                                <p>תצוגת דוברים:</p>
+                            </div>
+                            {
+                             speakersMultiStream ? <MultitrackComponent /> : <AudioControlsComponent />
+                            }
+                            
                         </div>
-                        <MultitrackComponent />
                     </>
                 </URLContext.Provider>
             </FileContext.Provider>

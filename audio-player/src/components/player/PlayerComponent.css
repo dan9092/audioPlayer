@@ -9,3 +9,32 @@
   .wavesurfer-container {
     margin-top: 2em;
   }
+
+  .speakers-view  {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.5em;
+    border-radius: 5px;
+    padding: 0 0.5em;
+  }
+
+  .speakers-view > p {
+    direction: rtl;
+    font-weight: 600;
+  }
+
+  .speakers-view-button {
+    cursor: pointer;
+    padding: 0.5em;
+    border-radius: 5px;
+  }
+
+  .speakers-view-button:hover, .speakers-view-button:focus {
+    background-color: whitesmoke;
+  }
+
+  .speakers-view-button-active {
+    pointer-events: none;
+    background-color: lightblue;
+  }

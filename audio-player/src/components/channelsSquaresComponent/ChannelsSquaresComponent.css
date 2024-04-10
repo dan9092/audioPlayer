@@ -1,0 +1,15 @@
+.channels-squares {
+    display: flex;
+    flex-direction: column;
+}
+
+.stream-squares-container {
+    display: flex;
+}
+
+.square {
+    width: 15px;
+    height: 15px;
+    border: 1px solid;
+    cursor: pointer;
+}
