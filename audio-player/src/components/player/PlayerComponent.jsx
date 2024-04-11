@@ -1,21 +1,24 @@
-import React, { useCallback, useState } from "react";
-import { AudioContext, FileContext, URLContext } from '../../contexts/audioContext';
+import React, { useCallback, useState, useRef } from "react";
+import { AudiosContext, FileContext, URLContext } from '../../contexts/Context';
 import AudioControlsComponent from "../playerControls/PlayerControlsComponent";
-import { faArrowUpFromBracket, faBars, faList, faMinus } from "@fortawesome/free-solid-svg-icons";
+import { faArrowUpFromBracket, faArrowsRotate, faBars, faFloppyDisk, faGear, faList, faMinus, faRotate, faUpRightFromSquare, faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import axios from "axios";
-import MultitrackComponent from "../multitrack/MultitrackComponent";
 import './PlayerComponent.css';
+import SidePanelComponent from "../SidePanelComponents/SidePanelComponent/SidePanelComponent";
 
 const PlayerComponent = () => {
     const [audio, setAudio] = useState(new Audio());
+    const audioContextRef = useRef(new AudioContext());
+    const splitterRef = useRef(audioContextRef.current.createChannelSplitter(2));
+    const mergerRef = useRef(audioContextRef.current.createChannelMerger(2));
+    const leftGainRef = useRef(audioContextRef.current.createGain());
+    const rightGainRef = useRef(audioContextRef.current.createGain());
+    const sourceRef = useRef(!audio.src && audioContextRef.current.createMediaElementSource(audio));
+    const stereoPannerNodeRef = useRef(audioContextRef.current.createStereoPanner());
+
     const [file, setFile] = useState(null);
     const [url, setUrl] = useState('/audio/audio5.ogg');
-    const [speakersMultiStream, setSpeakersMultiStream] = useState(false);
-
-    const handleMultiSpeakersView = useCallback(() => {
-        setSpeakersMultiStream((prevState) => !prevState);
-    }, []);
 
     const isFileValid = useCallback((file) => {
       console.log(file);
@@ -38,46 +41,68 @@ const PlayerComponent = () => {
     }, []);
 
     return (
-        <AudioContext.Provider value={audio}>
+        <AudiosContext.Provider value={{audio, audioContextRef, splitterRef, mergerRef, leftGainRef, rightGainRef, sourceRef, stereoPannerNodeRef}}>
             <FileContext.Provider value={file}>
                 <URLContext.Provider value={url}>
                     <>
-                        <div>
-                            <input 
-                            type='file'
-                            id='upload-file-input'
-                            hidden={true}
-                            accept='audio/*'
-                            onInput={(e) => handleFileInput(e)}
-                            />
-                            <label htmlFor='upload-file-input'>
-                                <FontAwesomeIcon icon={faArrowUpFromBracket} className='fa-lg button' />
-                            </label>
-                        </div>
-                        <p>Audio: {url}</p>
-                        <div className=''>
-                            <div className="speakers-view">
-                                <FontAwesomeIcon 
-                                    icon={faMinus}
-                                    className={speakersMultiStream ? "fs-lg speakers-view-button" : "fs-lg speakers-view-button speakers-view-button-active"}
-                                    onClick={handleMultiSpeakersView}
-                                />
-                                <FontAwesomeIcon 
-                                    icon={faList}
-                                    className={speakersMultiStream ? "fs-lg speakers-view-button speakers-view-button-active" : "fs-lg speakers-view-button"}
-                                    onClick={handleMultiSpeakersView}
-                                />
-                                <p>תצוגת דוברים:</p>
+                        <section className="top-general-actions">
+                            <div className="top-icons-container">
+                                <div className="settings-container">
+                                    <FontAwesomeIcon 
+                                        icon={faGear}
+                                        className="button top-icon settings-icon"
+                                    />
+                                </div>
+                                <div className="upload-file-container">
+                                    <input 
+                                    type='file'
+                                    id='upload-file-input'
+                                    hidden={true}
+                                    accept='audio/*'
+                                    onInput={(e) => handleFileInput(e)}
+                                    />
+                                    <label htmlFor='upload-file-input'>
+                                        <FontAwesomeIcon 
+                                            icon={faArrowUpFromBracket}
+                                            className='button top-icon upload-file-icon'
+                                        />
+                                    </label>
+                                </div>
+                                <div className="export-container">
+                                    <FontAwesomeIcon 
+                                        icon={faUpRightFromSquare}
+                                        className="button top-icon export-icon"
+                                    />
+                                </div>
+                                <div className="save-container">
+                                    <FontAwesomeIcon 
+                                        icon={faFloppyDisk}
+                                        className="button top-icon save-icon"
+                                    />
+                                </div>
+                                <div className="refresh-container">
+                                    <FontAwesomeIcon 
+                                        icon={faArrowsRotate}
+                                        className="button top-icon refresh-icon"
+                                    />
+                                </div>
                             </div>
-                            {
-                             speakersMultiStream ? <MultitrackComponent /> : <AudioControlsComponent />
-                            }
-                            
-                        </div>
+                            <div className="general-details-container">
+                                <b>שם</b>
+                                <FontAwesomeIcon 
+                                    icon={faUser}
+                                    className="fa-xs subject-icon"
+                                />
+                            </div>
+                        </section>
+                        
+                        <p>Audio: {url}</p>
                     </>
+                    <AudioControlsComponent />
+                    <SidePanelComponent />
                 </URLContext.Provider>
             </FileContext.Provider>
-        </AudioContext.Provider>  
+        </AudiosContext.Provider>  
     )
 }
 

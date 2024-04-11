@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { getVolumeIcon } from "../../utils";
 import './VolumeSliderComponent.css';
 
 
-const VolumeSliderComponent = ({ getVolumeIcon, mute, unmute, handleVolumeInput, trackIndex = null }) => {
+const VolumeSliderComponent = ({ mute, unmute, handleVolumeInput, trackIndex = null }) => {
     const [volume, setVolume] = useState(1);
     const [isMuted, setIsMuted] = useState(false);
 
