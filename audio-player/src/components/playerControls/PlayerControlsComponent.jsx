@@ -496,7 +496,7 @@ const PlayerControlsComponent = () => {
     }, [isTopLeftActive, isTopRightActive, isBottomLeftActive, isBottomRightActive]);
 
     return (
-        <>
+        <div className='player-controls-component'>
             <div className=''>
                 <div className="speakers-view">
                     <FontAwesomeIcon 
@@ -596,6 +596,7 @@ const PlayerControlsComponent = () => {
                     onStop={multitrackRef.current.onStop}
                     zoomRef={multitrackRef.current.zoomRef}
                     handleZoomInput={multitrackRef.current.handleZoomInput}
+                    displaySpectrogramIcon={false}
                 /> 
                 : <ControlsComponent
                     currentTime={currentTime}
@@ -608,6 +609,7 @@ const PlayerControlsComponent = () => {
                     loopRegions={loopRegions}
                     loopRegionsRef={loopRegionsRef}
                     setLoopRegions={setLoopRegions}
+                    displaySpectrogramIcon={true}
                     spectrogram={spectrogram}
                     setSpectrogram={setSpectrogram}
                     playbackRateRef={playbackRateRef}
@@ -629,7 +631,7 @@ const PlayerControlsComponent = () => {
                 />
             }
             
-        </>
+        </div>
     )
 };
 

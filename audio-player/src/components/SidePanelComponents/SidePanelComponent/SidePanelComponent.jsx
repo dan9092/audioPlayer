@@ -3,6 +3,8 @@ import './SidePanelComponent.css';
 import ModelsComponent from "../ModelsComponent/ModelsComponent";
 import SubjectsComponent from "../SubjectsComponent/SubjectsComponent";
 import PropertiesComponent from "../PropertiesComponent/PropertiesComponent";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowRight, faPhoneVolume } from "@fortawesome/free-solid-svg-icons";
 
 const SidePanelComponent = (props) => {
     const [activeTab, setActiveTab] = useState('subjects');
@@ -29,10 +31,23 @@ const SidePanelComponent = (props) => {
         return currentTab.component;
     }, [activeTab, tabs]);
 
+    const [displaySidePanel, setDisplaySidePanel] = useState(false);
+
     return (
         <>
-            <div className="side-panel">
+            <FontAwesomeIcon 
+                icon={faPhoneVolume}
+                className="fa-lg button"
+                onClick={() => setDisplaySidePanel(true)}
+                style={{ display: displaySidePanel ? 'none' : 'block'}}
+            />
+            <div className="side-panel" style={{ display: displaySidePanel ? 'block' : 'none'}}>
                 <div className="side-panel-top">
+                    <FontAwesomeIcon 
+                        icon={faArrowRight}
+                        className="fa-lg button"
+                        onClick={() => setDisplaySidePanel(false)}    
+                    />
                     <ul className="side-panel-tabs">
                         {
                             tabs.map((tab) => {

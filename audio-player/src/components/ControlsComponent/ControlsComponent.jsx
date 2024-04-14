@@ -18,6 +18,7 @@ const ControlsComponent = (props) => {
         loopRegions,
         loopRegionsRef,
         setLoopRegions,
+        displaySpectrogramIcon,
         spectrogram,
         setSpectrogram,
         channelsSquaresProps,
@@ -58,7 +59,8 @@ const ControlsComponent = (props) => {
                             />
                         </div>
                     }
-                    { spectrogram &&
+
+                    {displaySpectrogramIcon &&
                         <div className='checkbox-container'>
                             <label htmlFor='spectrogram-checkbox' className='spectrogram-label'>
                                 <FontAwesomeIcon 
@@ -75,6 +77,7 @@ const ControlsComponent = (props) => {
                             />
                         </div>
                     }
+                    
                     {channelsSquaresProps &&
                         <ChannelsSquaresComponent
                             {...channelsSquaresProps}

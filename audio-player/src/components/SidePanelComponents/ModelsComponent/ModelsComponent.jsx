@@ -1,15 +1,16 @@
-import React, { useContext } from "react";
+import React, { useContext, useRef } from "react";
 import './ModelsComponent.css';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRotateRight } from "@fortawesome/free-solid-svg-icons";
 import EqualizerComponent from "../../EqualizerComponent/EqualizerComponent";
 
 const ModelsComponent = (props) => {
+    const resetEqualizerRef = useRef(null);
 
     return (
         <>
             <div className="models-component-container">
-                <div className="models-container">
+                <div className="model-container">
                     <div className="models-title">
                         <b>Title</b>
                         <FontAwesomeIcon 
@@ -17,7 +18,17 @@ const ModelsComponent = (props) => {
                             className="button"/>
                     </div>
                 </div>
-                <EqualizerComponent />
+                <div className="model-container">
+                    <div className="models-title">
+                        <b>אקולייזר</b>
+                        <FontAwesomeIcon 
+                            icon={faArrowRotateRight}
+                            className="button"
+                            ref={resetEqualizerRef}
+                        />
+                    </div>
+                    <EqualizerComponent resetEqualizerRef={resetEqualizerRef} />
+                </div>
             </div>
         </>
     );

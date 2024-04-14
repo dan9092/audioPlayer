@@ -1,3 +1,6 @@
+.player-controls-component {
+    max-width: 960px;
+}
 
 .controls-container {
     display: flex;
@@ -7,7 +10,7 @@
     padding: 0.5em 1em;
     margin: 1em 0;
     border-radius: 5px;
-    width: 100%;
+    width: 112%;
 }
 
 .time {
@@ -106,67 +109,4 @@
 .disabled {
     pointer-events: none;
     color: grey;
-}
-
-/*------------------------------ Equalizer --------------------------------*/
-
-.equalizer {
-    width: 400px;
-    margin-top: 5em;
-}
-
-
-.equalizer-buttons-container {
-    display: flex;
-    justify-content: center;
-    margin: 0 0 2em 0;
-    
-}
-
-.reset-equalizers-button {
-    cursor: pointer;
-    padding: 0.5em 1em;
-    border-radius: 5px;
-}
-
-.equalizer-container {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 110px;
-    margin: 1em 0;
-}
-
-/* .equalizer-span::selection, .equalizer-label::selection {
-    background: none;
-} */
-
-.equalizer-span {
-    width: 40px;
-    text-align: center;
-}
-
-.equalizer-panner-container {
-    display: flex;
-    flex-direction: column;
-    width: 8%;
-    margin: 0 .5em;
-    text-align: center;
-}
-
-.equalizer-slider {
-    writing-mode: vertical-rl;
-    direction: rtl;
-    margin: 0 0.5em;
-}
-
-.equalizer-zero-line {
-    width: 100%;
-    position: absolute;
-    top: 47px;
-    border: 1px dashed gray;
-    left: 0;
-    z-index: 3;
 }

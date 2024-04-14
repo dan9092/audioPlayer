@@ -98,8 +98,11 @@ const PlayerComponent = () => {
                         
                         <p>Audio: {url}</p>
                     </>
-                    <AudioControlsComponent />
-                    <SidePanelComponent />
+                    <div className="container">
+                        <AudioControlsComponent />
+                        <SidePanelComponent />
+                    </div>
+                    
                 </URLContext.Provider>
             </FileContext.Provider>
         </AudiosContext.Provider>  
