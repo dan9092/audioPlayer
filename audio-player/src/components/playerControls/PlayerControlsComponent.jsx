@@ -128,6 +128,8 @@ const PlayerControlsComponent = () => {
     const leftVolumeRef = useRef(null);
     const [leftVolume, setLeftVolume] = useState(100);
     const [leftVolumeIcon, setleftVolumeIcon] = useState(faVolumeHigh); 
+    const [shouldDisplayLeftVolumeSlider, setShouldDisplayLeftVolumeSlider] = useState(false);
+
     const handleLeftVolumeInput = useCallback(() => {
         const newVolume = Number(leftVolumeRef.current.value);
         const volumeLabel = (newVolume * 100).toFixed();
@@ -158,6 +160,8 @@ const PlayerControlsComponent = () => {
     const rightVolumeRef = useRef(null);  
     const [rightVolume, setRightVolume] = useState(100);
     const [rightVolumeIcon, setRightVolumeIcon] = useState(faVolumeHigh);
+    const [shouldDisplayRightVolumeSlider, setShouldDisplayRightVolumeSlider] = useState(false);
+
     const handleRightVolumeInput = useCallback(() => {
         const newVolume = Number(rightVolumeRef.current.value);
         const volumeLabel = (newVolume * 100).toFixed();
@@ -535,7 +539,11 @@ const PlayerControlsComponent = () => {
                                 style={{display: decodedData && decodedData.numberOfChannels !== 1 ? 'block' : 'none'}}
                             >
                                 <div className='wavesurfer-stream-container'>
-                                    <div className='volume-container'>
+                                    <div 
+                                        className='volume-container-wavesurfer'
+                                        onMouseOver={() => setShouldDisplayLeftVolumeSlider(true)}
+                                        onMouseLeave={() => setShouldDisplayLeftVolumeSlider(false)}
+                                    >
                                         <FontAwesomeIcon 
                                             icon={leftVolumeIcon}
                                             className={areDiagonalsActive ? 'fa-sm volume-icon' : 'fa-sm volume-icon disabled'}
@@ -552,13 +560,17 @@ const PlayerControlsComponent = () => {
                                             step={0.01}
                                             // disabled if diagonals are not active
                                             disabled={!areDiagonalsActive}
-                                            className='volume-input'
+                                            className='volume-input-wavesurfer'
+                                            hidden={!shouldDisplayLeftVolumeSlider}
                                         />
-                                        <span className='volume-value'>{leftVolume}%</span>
+                                        <span className='volume-value-wavesurfer'>{leftVolume}%</span>
                                     </div>
                                 </div>
                                 <div className='wavesurfer-stream-container'>
-                                    <div className='volume-container'>
+                                    <div className='volume-container-wavesurfer'
+                                        onMouseOver={() => setShouldDisplayRightVolumeSlider(true)}
+                                        onMouseLeave={() => setShouldDisplayRightVolumeSlider(false)}
+                                    >
                                         <FontAwesomeIcon 
                                             icon={rightVolumeIcon}
                                             className={areDiagonalsActive ? 'fa-sm volume-icon' : 'fa-sm volume-icon disabled'}
@@ -573,11 +585,12 @@ const PlayerControlsComponent = () => {
                                             min={0}
                                             max={1}
                                             step={0.01}
-                                            className='volume-input'
+                                            className='volume-input-wavesurfer'
                                             // disabled if diagonals are not active
                                             disabled={!areDiagonalsActive}
+                                            hidden={!shouldDisplayRightVolumeSlider}
                                         />
-                                        <span className='volume-value'>{rightVolume}%</span>
+                                        <span className='volume-value-wavesurfer'>{rightVolume}%</span>
                                     </div>
                                 </div>
                             </div>  

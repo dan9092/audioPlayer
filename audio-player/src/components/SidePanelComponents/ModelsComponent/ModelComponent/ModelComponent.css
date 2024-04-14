@@ -1,0 +1,30 @@
+.model {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2em;
+    width: 100%;
+}
+
+.model-slider-container {
+    display: flex;
+    align-items: center;
+    margin: 0 1em 0 0;
+}
+
+.model-slider-container > input {
+    direction: ltr;
+    min-width: 120px;
+    max-width: 120px;
+} 
+
+.model-slider-container > label {
+    min-width: 50px;
+    max-width: 50px;
+}
+
+.model-select {
+    width: 100px;
+    cursor: pointer;
+    margin-right: auto;
+    border-radius: 5px;
+}

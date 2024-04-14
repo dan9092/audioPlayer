@@ -98,7 +98,7 @@ const ControlsComponent = (props) => {
                                 max={playbackRates.length - 1}
                                 step={1}
                                 defaultValue={6}
-                                className='volume-input'
+                                className='speed-input'
                             />
                             <span>X{playbackRate}</span>
                         </div>
@@ -129,10 +129,6 @@ const ControlsComponent = (props) => {
                         zoomRef={zoomRef}
                         handleZoomInput={handleZoomInput}
                     />
-                    {/* <VolumeSliderComponent
-                        getVolumeIcon={getVolumeIcon}
-                        handleVolumeInput={handleEqualizerInput}
-                    /> */}
                 </div>
             </section>
         </>

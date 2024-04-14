@@ -10,8 +10,8 @@
 }
 
 .equalizer {
-    width: 540px;
     margin: 4em auto;
+    position: relative;
 }
 
 .equalizer-values-container {
@@ -19,7 +19,6 @@
 }
 
 .equalizer-container {
-    position: relative;
     display: flex;
     flex-direction: row-reverse;
     justify-content: center;
@@ -31,16 +30,18 @@
 .equalizer-panner-container {
     display: flex;
     flex-direction: column;
-    width: 8%;
-    margin: 0 .5em;
+    justify-content: center;
+    align-items: center;
+    width: 5%;
+    margin: 0 auto;
     text-align: center;
 }
 
 .equalizer-slider {
     writing-mode: vertical-rl;
     direction: rtl;
-    margin: 0 0.5em;
     cursor: ns-resize;
+    width: 2px;
 }
 
 .equalizer-zero-line {
@@ -48,6 +49,6 @@
     position: absolute;
     top: 65%;
     border: 1px dashed gray;
-    left: 0;
+    left: 0%;
     z-index: 3;
 }

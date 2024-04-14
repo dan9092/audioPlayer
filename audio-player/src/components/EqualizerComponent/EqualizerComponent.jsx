@@ -13,7 +13,7 @@ const EqualizerComponent = (props) => {
     const equalizerSetsRef = useRef(null);
 
     const createEqualizer = useCallback(() => {
-        const equalizerBands = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+        const equalizerBands = [64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
 
         setEqualizerFilters(equalizerBands.map((band) => {
             const filter = audioContextRef.current.createBiquadFilter();
@@ -39,7 +39,7 @@ const EqualizerComponent = (props) => {
 
     const resetEqualizer = useCallback(() => {
         equalizerSetsRef.current.value = "default";
-        
+
         setEqualizerFilters((prevFilters) => {
             return prevFilters.map((filter) => {
                 filter.gain.value = 0;
@@ -88,7 +88,7 @@ const EqualizerComponent = (props) => {
                     key={`equalizer-label-${inputId}`}
                     htmlFor={inputId}
                     className='equalizer-label'
-                >{filter.frequency.value}</label>
+                >{filter.frequency.value % 1000 === 0 ? `${filter.frequency.value / 1000}k` : filter.frequency.value}</label>
             </div>
         );
     }), [filtersValues, equalizerFilters]);
@@ -125,19 +125,19 @@ const EqualizerComponent = (props) => {
                 id: 1,
                 title: 'סט 1',
                 value: 'set1',
-                gains: [5, 15, 25, 35, 40, 0, 0, 0, 0, 0],
+                gains: [5, 15, 25, 35, 40, 0, 0, 0, 0],
             },
             {
                 id: 2,
                 title: 'סט 2',
                 value: 'set2',
-                gains: [0, 0, 0, 10, 20, 40, 30, 0, 0, 0],
+                gains: [0, 0, 0, 10, 20, 40, 30, 0, 0],
             },
             {
                 id: 3,
                 title: 'סט 3',
                 value: 'set3',
-                gains: [0, 0, 0, 0, 0, 40, 35, 25, 15, 5],
+                gains: [0, 0, 0, 0, 0, 40, 35, 25, 15],
             },
         ];
     }, []);
@@ -169,7 +169,7 @@ const EqualizerComponent = (props) => {
                 className="equalizer-sets-select"
                 onInput={changeEqualizerSet}
             >
-                <option value="default" className="equalizer-sets-option"></option>
+                <option value="default" className="equalizer-sets-option">בחר סט</option>
                 {
                     equalizerSets.map((set) => {
                         return (

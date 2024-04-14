@@ -6,6 +6,20 @@
 
 .container {
   display: flex;
+  justify-content: flex-start;
+  max-width: 85%;
+  overflow: hidden;
+}
+
+.audio-controls-component-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  max-width: 65%;
+}
+
+.side-panel-component-container {
+  max-width: 30%;
 }
 
 .top-general-actions {
@@ -15,6 +29,7 @@
   background-color: #f5f5f5;
   border-radius: 5px;
   padding: 0.25em 0.5em;
+  width: 76.4%;
 }
 
 .middle-section {
@@ -79,7 +94,7 @@
   background-color: whitesmoke;
 }
 
-  .speakers-view-button-active {
-    pointer-events: none;
-    background-color: lightblue;
-  }
+.speakers-view-button-active {
+  pointer-events: none;
+  background-color: lightblue;
+}

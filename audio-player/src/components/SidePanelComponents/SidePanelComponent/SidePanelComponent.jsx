@@ -4,7 +4,7 @@ import ModelsComponent from "../ModelsComponent/ModelsComponent";
 import SubjectsComponent from "../SubjectsComponent/SubjectsComponent";
 import PropertiesComponent from "../PropertiesComponent/PropertiesComponent";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRight, faPhoneVolume } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRight, faPhoneVolume , faCircleUser} from "@fortawesome/free-solid-svg-icons";
 
 const SidePanelComponent = (props) => {
     const [activeTab, setActiveTab] = useState('subjects');

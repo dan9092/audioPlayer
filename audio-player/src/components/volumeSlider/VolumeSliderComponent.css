@@ -1,8 +1,19 @@
 .volume-container {
     display: flex;
     align-items: center;
+    position: relative;
 }
 
 .volume-value {
     margin-left: 0.25em;
+}
+
+.volume-input {
+    writing-mode: vertical-rl;
+    direction: rtl;
+    cursor: ns-resize;
+    position: absolute;
+    top: -370%;
+    left: 50%;
+    height: 80px;
 }
