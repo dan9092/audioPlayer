@@ -26,10 +26,9 @@ const MultitrackComponent = forwardRef((props, ref) => {
         shouldDisplay,
         multitrack,
         setMultitrack, 
-        currentTime,
-        setCurrentTime,
         setIsPlaying,
-        setDuration
+        setDuration,
+        setCurrentTime,
     } = props;
 
     const multitrackContainerRef = useRef(null);
@@ -43,6 +42,7 @@ const MultitrackComponent = forwardRef((props, ref) => {
     const onStop = useCallback(() => {
         multitrack.pause();
         multitrack.setTime(0);
+        setCurrentTime(0);
         setIsPlaying(false);
     }, [multitrack])
 
@@ -54,6 +54,8 @@ const MultitrackComponent = forwardRef((props, ref) => {
         } else {
             multitrack.setTime(newTime);
         }
+
+        setCurrentTime(multitrack.getCurrentTime());
         
     }, [multitrack]);
 
@@ -110,7 +112,6 @@ const MultitrackComponent = forwardRef((props, ref) => {
             getMultitrackDuration
         });
     }, [zoomRef,
-        currentTime,
         onPlayPause,
         onStop,
         onSkip,
@@ -202,7 +203,7 @@ const MultitrackComponent = forwardRef((props, ref) => {
 
             setMultitrack(multiTrack);
         }
-    }, [currentTime])
+    }, [])
 
     useEffect(() => {
         if (!multitrack) return;
@@ -224,12 +225,15 @@ const MultitrackComponent = forwardRef((props, ref) => {
                 })
             })
         });
-
-        multitrack.on('audioprocess', (time) => {
-            console.log(time);
-            setCurrentTime(time);
-        });
     }, [multitrack])
+
+    useEffect(() => {
+        if (multitrack && multitrack.isPlaying()) {
+            setTimeout(() => {
+                setCurrentTime(multitrack.getCurrentTime());   
+            }, 1000);
+        }        
+    })
 
     return (
         <>

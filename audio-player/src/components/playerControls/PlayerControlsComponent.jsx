@@ -524,9 +524,9 @@ const PlayerControlsComponent = () => {
                     multitrack={multitrack}
                     setMultitrack={setMultitrack}
                     setIsPlaying={setIsMultitrackPlaying}
+                    setDuration={setMultitrackDuration}  
                     currentTime={multitrackCurrentTime}
                     setCurrentTime={setMultitrackCurrentTime} 
-                    setDuration={setMultitrackDuration}   
                 /> 
                 { !speakersMultiStream && 
                     <>

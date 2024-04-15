@@ -15,6 +15,7 @@
     direction: ltr;
     min-width: 120px;
     max-width: 120px;
+    cursor: ew-resize;
 } 
 
 .model-slider-container > label {
